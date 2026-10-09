@@ -39,6 +39,15 @@ input[type=text],input[type=tel],input[type=number],input[type=search],select,te
 input:focus,select:focus,textarea:focus{outline:2px solid var(--green-2);outline-offset:0;border-color:var(--green-2)}
 .row{display:grid;gap:12px;grid-template-columns:1.6fr 1.2fr 2fr}
 .ns{display:none}
+.help-doc details{border:1px solid var(--line);border-radius:10px;margin-bottom:10px;background:#fff}
+.help-doc summary{cursor:pointer;padding:12px 14px;font-weight:700;color:var(--green);font-size:16px;list-style:none}
+.help-doc summary::-webkit-details-marker{display:none}
+.help-doc summary::before{content:"▸ ";color:var(--muted)}
+.help-doc details[open] summary::before{content:"▾ "}
+.help-doc .hb{padding:0 16px 12px;font-size:15px;line-height:1.55}
+.help-doc .hb ol,.help-doc .hb ul{padding-left:22px;margin:6px 0}
+.help-doc .hb li{margin:4px 0}
+.help-doc .tip{background:#fff8e6;border:1px solid #f0dca8;border-radius:8px;padding:8px 12px;margin:8px 0;font-size:14px}
 .dgroup{margin:16px 0 8px;font-weight:700;color:var(--green);font-size:15px;border-bottom:2px solid var(--green-soft);padding-bottom:4px}
 .dcard{border:1px solid var(--line);border-left:6px solid #c9d1cb;border-radius:10px;padding:10px 12px;margin-bottom:10px;background:#fff}
 .dcard.partial{border-left-color:var(--gold)}
@@ -95,6 +104,9 @@ table{border-collapse:collapse;width:100%}
 .pay label{display:flex;align-items:center;gap:8px;border:2px solid var(--line);border-radius:10px;padding:12px 18px;cursor:pointer;font-size:16px;color:var(--ink);margin:0;background:#fff}
 .pay input{width:18px;height:18px;accent-color:var(--green)}
 .pay label.on{border-color:var(--green);background:var(--green-soft)}
+.pay label.unpaid.on{border-color:var(--red);background:var(--red-soft)}
+.pill.unpaid{background:var(--red-soft);color:var(--red)}
+.owed{color:var(--red);font-weight:700}
 .paygrid{display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:end}
 @media (max-width:760px){.paygrid{grid-template-columns:1fr}}
 .bar{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);box-shadow:0 -4px 14px rgba(0,0,0,.08);z-index:10}
@@ -140,7 +152,7 @@ header{padding-top:env(safe-area-inset-top)}
 @media (max-width:640px){
   .hwrap{gap:8px;padding:8px 12px}
   .brand{font-size:17px}
-  nav{width:100%;order:3;display:grid;grid-template-columns:repeat(5,1fr);gap:3px}
+  nav{width:100%;order:3;display:grid;grid-template-columns:repeat(6,1fr);gap:2px}
   nav button{padding:8px 2px;font-size:13px}
   .nl{display:none}.ns{display:inline}
   .dhead{flex-wrap:wrap}
@@ -152,7 +164,7 @@ header{padding-top:env(safe-area-inset-top)}
   .item .nm{font-size:15px}
   .step button{width:40px;height:40px;font-size:20px}
   .step input{height:40px;width:44px}
-  .pay label{flex:1;justify-content:center;padding:12px 8px;font-size:15px}
+  .pay label{flex:1 1 40%;justify-content:center;padding:12px 8px;font-size:15px}
   .total{font-size:22px}
   .bar .in{gap:8px;padding:10px 12px}
   .bar .btn{padding:10px 14px}
@@ -177,6 +189,7 @@ header{padding-top:env(safe-area-inset-top)}
       <button data-tab="totals">Totals</button>
       <button data-tab="dist"><span class="nl">Distribution</span><span class="ns">Deliver</span></button>
       <button data-tab="setup"><span class="nl">Setup &amp; Export</span><span class="ns">Setup</span></button>
+      <button data-tab="help">Help</button>
     </nav>
     <div class="backup"><span id="backupInfo"></span><button class="btn sm" id="backupBtn">Save backup</button></div>
   </div>
@@ -222,23 +235,24 @@ header{padding-top:env(safe-area-inset-top)}
   </div>
 
   <div class="card">
-    <h2>Payment (paid up front)</h2>
-    <div class="paygrid">
-      <div class="pay" id="payBox">
-        <label><input type="radio" name="pay" value="Cash"> 💵 Cash</label>
-        <label><input type="radio" name="pay" value="Check"> 🧾 Check</label>
-        <label><input type="radio" name="pay" value="Credit Card"> 💳 Credit Card</label>
-      </div>
-      <div id="checkWrap" style="display:none;max-width:220px">
-        <label for="fCheck">Check #</label>
-        <input type="text" id="fCheck" autocomplete="off">
-      </div>
+    <h2>Payment</h2>
+    <div class="pay" id="payBox">
+      <label><input type="radio" name="pay" value="Cash"> 💵 Cash</label>
+      <label><input type="radio" name="pay" value="Check"> 🧾 Check</label>
+      <label><input type="radio" name="pay" value="Credit Card"> 💳 Credit Card</label>
+      <label><input type="radio" name="pay" value="Venmo/PayPal"> 📱 Venmo / PayPal</label>
+      <label class="unpaid"><input type="radio" name="pay" value="Not paid yet"> ⏳ Not paid yet</label>
     </div>
+    <div id="checkWrap" style="display:none;max-width:320px;margin-top:12px">
+      <label for="fCheck" id="fCheckLbl">Check #</label>
+      <input type="text" id="fCheck" autocomplete="off">
+    </div>
+    <div id="dueNote" class="help" style="display:none;color:var(--red);font-weight:600;margin:10px 0 0">This order will be marked NOT PAID — collect payment at pickup or delivery.</div>
     <div style="margin-top:14px">
       <label for="fNotes">Notes</label>
       <input type="text" id="fNotes" autocomplete="off" placeholder="Anything the pickup crew should know">
     </div>
-    <p class="help" style="margin-bottom:0">All orders are picked up at the church — no address needed.</p>
+    <p class="help" style="margin-bottom:0">Leave the address blank for church pickup; fill it in for door-to-door delivery.</p>
   </div>
 </section>
 
@@ -278,7 +292,7 @@ header{padding-top:env(safe-area-inset-top)}
   <div class="card">
     <div class="toolbar">
       <input type="search" id="dSearch" placeholder="Search name, phone, address, cadet">
-      <select id="dFilter" style="max-width:190px"><option value="open">Still to hand out</option><option value="">Everyone</option><option value="done">Done</option><option value="addr">Door-to-door only</option></select>
+      <select id="dFilter" style="max-width:190px"><option value="open">Still to hand out</option><option value="">Everyone</option><option value="done">Done</option><option value="addr">Door-to-door only</option><option value="unpaid">Not paid yet</option></select>
       <select id="dGroup" style="max-width:170px"><option value="">A–Z by last name</option><option value="cadet">Group by cadet</option></select>
       <span style="flex:1"></span>
       <button class="btn" id="dPrint">🖨 Print list</button>
@@ -294,6 +308,103 @@ header{padding-top:env(safe-area-inset-top)}
       <button class="btn link" id="clearRoster">Clear roster</button>
     </div>
   </div>
+</section>
+
+<!-- HELP -->
+<section class="tab help-doc" id="tab-help">
+  <div class="card">
+    <h2>How to use the Wreath Order app</h2>
+    <p class="help" style="margin-bottom:0">Tap a topic to open it. Everything you enter stays on <b>this device</b> — nothing is sent anywhere unless you send a backup or a tally sheet yourself.</p>
+  </div>
+
+  <details open><summary>1. Getting started (do this once)</summary><div class="hb">
+    <ol>
+      <li><b>Install it on your phone</b> so it works without internet:
+        <ul><li><b>iPhone:</b> open the link in <b>Safari</b> → tap <b>Share</b> (square with arrow) → <b>Add to Home Screen</b>.</li>
+            <li><b>Android:</b> open the link in <b>Chrome</b> → tap <b>⋮</b> → <b>Install app</b> (or <b>Add to Home screen</b>).</li></ul>
+        Then always open it from the new <b>Wreaths</b> icon.</li>
+      <li>Go to <b>Setup</b> and type <b>Your cadet's name</b>. Every order you take is credited to that cadet. (Leave it blank only if several cadets share one device.)</li>
+      <li>Check the <b>Year</b>, <b>Fundraiser dates</b>, and <b>Prices</b> on the Setup tab.</li>
+      <li>Optional: <b>Load last year's tally sheet</b> (Setup → Returning customers) so repeat customers pop up as you type.</li>
+    </ol>
+    <div class="tip">Each new download starts completely empty — no one else's orders come with it.</div>
+  </div></details>
+
+  <details><summary>2. Taking an order</summary><div class="hb">
+    <ol>
+      <li>Tap <b>New Order</b>.</li>
+      <li>Type the customer's <b>name</b>. If they're a returning customer, tap their name in the list that pops up — phone (and address) fill in for you, and you'll see what they bought last year with a <b>Same as last year</b> button.</li>
+      <li>Enter a <b>phone or email</b>.</li>
+      <li><b>Address:</b> fill it in only if you'll deliver door-to-door. Leave it blank for church pickup.</li>
+      <li>Use <b>+</b> and <b>−</b> to set quantities. The total updates at the bottom.</li>
+      <li>Pick how they paid (see Payments below), add any <b>Notes</b>, then tap <b>Save order</b>.</li>
+    </ol>
+    <div class="tip">If the same name already ordered this year, the app asks before saving a second order — so you don't double-enter someone.</div>
+  </div></details>
+
+  <details><summary>3. Payments</summary><div class="hb">
+    <ul>
+      <li><b>💵 Cash</b>, <b>🧾 Check</b> (type the check number), <b>💳 Credit Card</b>, or <b>📱 Venmo / PayPal</b> (optionally note which app or username).</li>
+      <li><b>⏳ Not paid yet</b> — use this if they'll pay later. The order is flagged in red everywhere, shows on the Totals tab as money still owed, and the Paid column on the tally sheet is left blank with "NOT PAID" in the notes.</li>
+      <li>When an unpaid customer pays: go to <b>Orders</b> → <b>Edit</b> → choose how they paid → <b>Update order</b>. On distribution day you can also tap <b>💵 Mark paid</b> on their card.</li>
+    </ul>
+  </div></details>
+
+  <details><summary>4. Orders &amp; Totals tabs</summary><div class="hb">
+    <ul>
+      <li><b>Orders</b> lists everything you've taken. Search by name, phone, or address. Use <b>Edit</b> to fix a mistake or <b>Delete</b> to remove an order.</li>
+      <li><b>Totals</b> shows how many of each item to order from the supplier, money collected by payment type, money still owed, and sales by cadet.</li>
+    </ul>
+  </div></details>
+
+  <details><summary>5. Backups — sending your orders to the troop</summary><div class="hb">
+    <ol>
+      <li>Tap <b>Save backup</b> (top of the screen).</li>
+      <li>On a phone, the share menu opens — pick <b>Mail</b> (or Messages) and send it to the troop's order coordinator. On a computer, the file downloads.</li>
+      <li>The coordinator opens their copy of the app → <b>Setup</b> → <b>Load a backup file</b> → choose <b>Merge</b> to add your orders to theirs.</li>
+    </ol>
+    <div class="tip">Save a backup after every session of taking orders. If your phone is lost or its browser data is cleared, the backup is the only copy.</div>
+  </div></details>
+
+  <details><summary>6. Making the Excel tally sheet</summary><div class="hb">
+    <ol>
+      <li>Go to <b>Setup</b> → <b>Export to the Tally Sheet</b>.</li>
+      <li>Choose which orders (all, or one cadet), then tap <b>Download Tally Sheet (.xlsx)</b>.</li>
+      <li>Open it in Excel — totals calculate automatically. Each sheet holds 52 customers; bigger lists come out as page 1, page 2, etc.</li>
+    </ol>
+    <p><b>Simple order list (.csv)</b> gives a plain spreadsheet of every order if you'd rather sort and filter yourself.</p>
+  </div></details>
+
+  <details><summary>7. Distribution day (handing out wreaths)</summary><div class="hb">
+    <ol>
+      <li>Open the <b>Distribution</b> tab (<b>Deliver</b> on phones).</li>
+      <li>Tap <b>Load tally sheets / backups</b> and pick the files each family sent in (you can pick several at once). Tap <b>Add this device's orders</b> to include orders taken on this device.</li>
+      <li>Search for each customer as they arrive. Check off each item as you hand it over, or tap <b>✓ All handed out</b>.</li>
+      <li>Customers missing something show as <b>Partly</b>. Finished customers drop off the "Still to hand out" list (switch the filter to <b>Everyone</b> or <b>Done</b> to see them; <b>Undo</b> reverses a mistake).</li>
+      <li>Red <b>Not paid</b> tags show who still owes money — collect it, then tap <b>💵 Mark paid</b>.</li>
+      <li>Filters: <b>Door-to-door only</b> for delivery drivers, <b>Not paid yet</b> for collections. <b>Print list</b> gives a paper backup.</li>
+      <li>The bottom section shows items still waiting, and lets you download <b>tally sheets with Delivered marked</b> or a <b>delivery report</b>.</li>
+    </ol>
+    <div class="tip">If a family sends an updated file, just load it again — their list is replaced but your check marks are kept.</div>
+  </div></details>
+
+  <details><summary>8. Starting fresh</summary><div class="hb">
+    <ul>
+      <li><b>Setup → Erase orders only</b>: removes this device's orders but keeps settings and returning customers.</li>
+      <li><b>Setup → Reset everything</b>: makes the app like a brand-new copy (orders, roster, returning customers, cadet name, price changes). Use this when handing a device to another cadet or starting a new year.</li>
+      <li>Save a backup first if you might need anything.</li>
+    </ul>
+  </div></details>
+
+  <details><summary>9. Troubleshooting</summary><div class="hb">
+    <ul>
+      <li><b>My orders disappeared.</b> Orders live in this browser on this device. They're lost if you clear browsing data, use a private/incognito window, or open the app in a different browser. Load your latest backup (Setup → Load a backup file).</li>
+      <li><b>iPhone:</b> always use the home-screen icon. A page left open only in a Safari tab can have its data cleared by iOS if it goes unused for a while.</li>
+      <li><b>Two devices, different orders.</b> Each device keeps its own list. Combine them with Save backup → Load a backup file → Merge.</li>
+      <li><b>The app looks out of date.</b> Open it once with internet, close it, and open it again — updates install in the background.</li>
+      <li><b>Can't find a downloaded file on iPhone.</b> Look in the <b>Files</b> app → <b>Downloads</b>.</li>
+    </ul>
+  </div></details>
 </section>
 
 <!-- SETUP -->
@@ -326,7 +437,8 @@ header{padding-top:env(safe-area-inset-top)}
         <input type="file" id="impBackup" accept=".json,application/json" style="display:none">
         <div style="display:flex;gap:8px;flex-wrap:wrap">
           <button class="btn" id="impBackupBtn">📂 Load a backup file</button>
-          <button class="btn link" id="wipeAll">Start over (erase all orders)</button>
+          <button class="btn link" id="wipeAll">Erase orders only</button>
+          <button class="btn link" id="resetAll">Reset everything (fresh start)</button>
         </div>
       </div>
     </div>
@@ -442,6 +554,9 @@ function fmtPhone(s){
 const orderTotal = o => Object.entries(o.items||{}).reduce((a,[k,q])=>a+(PBYK[k]?q*price(k):0),0);
 const orderQty = o => Object.values(o.items||{}).reduce((a,q)=>a+(+q||0),0);
 const itemsText = items => Object.entries(items||{}).filter(([k,q])=>q>0&&PBYK[k]).map(([k,q])=>`${q}× ${PBYK[k].short}`).join(", ");
+const UNPAID = "Not paid yet", PAY_METHODS = ["Cash","Check","Credit Card","Venmo/PayPal"];
+const isPaid = o => !!o.pay && o.pay!==UNPAID;
+const payText = o => !o.pay ? "" : o.pay===UNPAID ? "NOT PAID" : o.pay==="Not recorded" ? "Paid (method not recorded)" : o.pay+(o.checkNo?(o.pay==="Check"?` #${o.checkNo}`:` (${o.checkNo})`):"");
 const uid = () => Date.now().toString(36)+Math.random().toString(36).slice(2,8);
 function toast(msg,err){ const t=$("#toast"); t.textContent=msg; t.className="toast show"+(err?" err":""); clearTimeout(t._h); t._h=setTimeout(()=>t.className="toast",2600); }
 function ask(title, html, buttons){
@@ -506,8 +621,12 @@ function updateTotal(){
 function payChanged(){
   const v = document.querySelector("#payBox input:checked")?.value;
   document.querySelectorAll("#payBox label").forEach(l=>l.classList.toggle("on",l.querySelector("input").checked));
-  $("#checkWrap").style.display = v==="Check" ? "" : "none";
-  if(v==="Check") $("#fCheck").focus();
+  const ref = v==="Check" || v==="Venmo/PayPal";
+  $("#checkWrap").style.display = ref ? "" : "none";
+  $("#fCheckLbl").textContent = v==="Venmo/PayPal" ? "Which app / username (optional)" : "Check #";
+  $("#fCheck").placeholder = v==="Venmo/PayPal" ? "e.g. Venmo @mary-smith" : "";
+  $("#dueNote").style.display = v===UNPAID ? "" : "none";
+  if(ref && !isPhone) $("#fCheck").focus();
 }
 let editingId = null, lastItems = null;
 function formDirty(){ return $("#fName").value.trim() || orderQty({items:readItems()})>0; }
@@ -529,18 +648,18 @@ async function saveOrder(){
   const name=$("#fName").value.trim().replace(/\s+/g," "), items=readItems(), pay=document.querySelector("#payBox input:checked")?.value;
   if(!name){ toast("Enter the customer's name",1); $("#fName").focus(); return; }
   if(!Object.keys(items).length){ toast("Add at least one item",1); return; }
-  if(!pay){ toast("Choose how they paid: cash, check, or credit card",1); return; }
+  if(!pay){ toast("Choose how they paid — or “Not paid yet”",1); return; }
   if(!editingId){
     const dup = DB.orders.find(o=>norm(o.name)===norm(name));
     if(dup && !(await ask("Already ordered this year?",`<p><b>${esc(dup.name)}</b> already has order #${dup.num} (${esc(itemsText(dup.items))}).</p><p>Save this as an additional order?</p>`,[{label:"Cancel",value:false},{label:"Save another order",value:true,cls:"primary"}]))) return;
   }
   const cadet = editingId ? (DB.orders.find(x=>x.id===editingId).cadet||"") : (DB.settings.defaultCadet||"");
-  const rec = {name, phone:fmtPhone($("#fPhone").value), address:$("#fAddr").value.trim().replace(/\s+/g," "), cadet, items, pay, checkNo:pay==="Check"?$("#fCheck").value.trim():"", notes:$("#fNotes").value.trim()};
+  const rec = {name, phone:fmtPhone($("#fPhone").value), address:$("#fAddr").value.trim().replace(/\s+/g," "), cadet, items, pay, checkNo:(pay==="Check"||pay==="Venmo/PayPal")?$("#fCheck").value.trim():"", notes:$("#fNotes").value.trim()};
   let o;
   if(editingId){ o=DB.orders.find(x=>x.id===editingId); Object.assign(o,rec,{updated:new Date().toISOString()}); }
   else { o={id:uid(), num:nextNum(), created:new Date().toISOString(), pickedUp:false, ...rec}; DB.orders.push(o); }
   persist(); updateCounts();
-  toast(`Order #${o.num} saved — ${o.name}, ${money(orderTotal(o))} (${o.pay})`);
+  toast(`Order #${o.num} saved — ${o.name}, ${money(orderTotal(o))} (${isPaid(o)?o.pay:"NOT PAID"})`);
   const wasEdit=!!editingId; resetForm(); if(wasEdit) showTab("orders");
 }
 const nextNum = () => DB.orders.reduce((m,o)=>Math.max(m,o.num||0),0)+1;
@@ -602,7 +721,7 @@ function renderOrders(){
     rows.map(o=>`<tr><td>${o.num}</td>
       <td><b>${esc(o.name)}</b><div class="its">${esc(o.phone||"")}${o.address?`<br>📍 ${esc(o.address)}`:""}</div></td>
       <td>${esc(itemsText(o.items))}${o.notes?`<div class="its">📝 ${esc(o.notes)}</div>`:""}</td>
-      <td class="num">${money(orderTotal(o))}</td><td>${esc(o.pay)}${o.checkNo?` #${esc(o.checkNo)}`:""}</td>
+      <td class="num">${money(orderTotal(o))}</td><td>${isPaid(o)?esc(payText(o)):`<span class="owed">⏳ Not paid</span>`}</td>
       <td class="noprint" style="white-space:nowrap"><button class="btn sm" data-edit="${o.id}">Edit</button> <button class="btn link sm" data-del="${o.id}">Delete</button></td></tr>`).join("")+
     (rows.length?"":`<tr><td colspan="6" class="empty">No matching orders.</td></tr>`)+`</tbody>`;
 }
@@ -619,15 +738,19 @@ $("#oTable").addEventListener("click",async e=>{
 function renderTotals(){
   const os=DB.orders, grand=os.reduce((a,o)=>a+orderTotal(o),0), items=os.reduce((a,o)=>a+orderQty(o),0);
   const wreaths=os.reduce((a,o)=>a+Object.entries(o.items).filter(([k])=>PBYK[k]?.cat==="Wreaths").reduce((s,[,q])=>s+q,0),0);
-  $("#statBox").innerHTML=[["Orders",os.length],["Total sales",money(grand)],["Items",items],["Wreaths",wreaths],["Door-to-door",os.filter(o=>o.address).length]].map(([l,v])=>`<div class="stat"><div class="v">${v}</div><div class="l">${l}</div></div>`).join("");
+  $("#statBox").innerHTML=[["Orders",os.length],["Total sales",money(grand)],["Items",items],["Wreaths",wreaths],["Door-to-door",os.filter(o=>o.address).length],["Not paid yet",`${os.filter(o=>o.pay===UNPAID).length} · ${money(os.filter(o=>o.pay===UNPAID).reduce((a,o)=>a+orderTotal(o),0))}`]].map(([l,v])=>`<div class="stat"><div class="v">${v}</div><div class="l">${l}</div></div>`).join("");
   let ph="<thead><tr><th>Item</th><th class='num'>Qty</th><th class='num'>Sales</th></tr></thead><tbody>", cat="";
   PRODUCTS.forEach(p=>{ const q=os.reduce((a,o)=>a+(o.items[p.k]||0),0);
     if(p.cat!==cat){ cat=p.cat; ph+=`<tr><td colspan="3" style="background:#fafbfa;font-weight:700;color:var(--green)">${cat}</td></tr>`; }
     ph+=`<tr${q?"":" class='muted'"}><td>${esc(p.name)}</td><td class="num">${q||"–"}</td><td class="num">${q?money(q*price(p.k)):"–"}</td></tr>`; });
   ph+=`<tr><td><b>Total</b></td><td class="num"><b>${items}</b></td><td class="num"><b>${money(grand)}</b></td></tr></tbody>`;
   $("#prodTotals").innerHTML=ph;
-  const pays=["Cash","Check","Credit Card",...new Set(os.map(o=>o.pay).filter(p=>p&&!["Cash","Check","Credit Card"].includes(p)))];
-  $("#payTotals").innerHTML="<thead><tr><th>Method</th><th class='num'>Orders</th><th class='num'>Amount</th></tr></thead><tbody>"+pays.map(m=>{const l=os.filter(o=>o.pay===m);return `<tr><td>${m}</td><td class="num">${l.length}</td><td class="num">${money(l.reduce((a,o)=>a+orderTotal(o),0))}</td></tr>`;}).join("")+`<tr><td><b>Total</b></td><td class="num"><b>${os.length}</b></td><td class="num"><b>${money(grand)}</b></td></tr></tbody>`;
+  const pays=[...PAY_METHODS,...new Set(os.map(o=>o.pay).filter(p=>p&&p!==UNPAID&&!PAY_METHODS.includes(p)))];
+  const unpaidOs=os.filter(o=>o.pay===UNPAID), paidOs=os.filter(o=>o.pay!==UNPAID), sum=l=>money(l.reduce((a,o)=>a+orderTotal(o),0));
+  $("#payTotals").innerHTML="<thead><tr><th>Method</th><th class='num'>Orders</th><th class='num'>Amount</th></tr></thead><tbody>"+pays.map(m=>{const l=os.filter(o=>o.pay===m);return `<tr><td>${m}</td><td class="num">${l.length}</td><td class="num">${sum(l)}</td></tr>`;}).join("")+
+    `<tr><td><b>Collected</b></td><td class="num"><b>${paidOs.length}</b></td><td class="num"><b>${sum(paidOs)}</b></td></tr>`+
+    `<tr class="owed"><td>⏳ Not paid yet (still owed)</td><td class="num">${unpaidOs.length}</td><td class="num">${sum(unpaidOs)}</td></tr>`+
+    `<tr><td><b>Total sales</b></td><td class="num"><b>${os.length}</b></td><td class="num"><b>${money(grand)}</b></td></tr></tbody>`;
   const cad={}; os.forEach(o=>{const c=o.cadet||"(no cadet)"; cad[c]=cad[c]||{n:0,t:0}; cad[c].n++; cad[c].t+=orderTotal(o);});
   const ck=Object.keys(cad).sort();
   $("#cadetTotals").innerHTML= ck.length ? "<thead><tr><th>Cadet</th><th class='num'>Orders</th><th class='num'>Sales</th></tr></thead><tbody>"+ck.map(c=>`<tr><td>${esc(c)}</td><td class="num">${cad[c].n}</td><td class="num">${money(cad[c].t)}</td></tr>`).join("")+"</tbody>" : `<tr><td class="empty">No orders yet.</td></tr>`;
@@ -688,6 +811,10 @@ $("#impBackup").onchange=async e=>{
     const rids=new Set(DB.roster.map(x=>x.id)); (d.roster||[]).forEach(x=>{ if(!rids.has(x.id)) DB.roster.push(x); }); }
   mergeCustomers(d.customers||[]); persist(); updateCounts(); renderSetup();
   toast(mode==="merge"?`Merged — ${added} new order${added===1?"":"s"} added`:"Backup loaded");
+};
+$("#resetAll").onclick=async()=>{
+  if(!(await ask("Reset everything?",`<p>This erases <b>all orders</b>, the distribution roster, returning customers, the cadet name and any price changes on this device — like a brand-new copy.</p><p>Save a backup first if you might need anything.</p>`,[{label:"Cancel",value:false},{label:"Reset everything",value:true,cls:"primary"}]))) return;
+  DB={settings:{...DEFAULT_SETTINGS,prices:{}}, orders:[], customers:[], roster:[]}; persist(); resetForm(); updateCounts(); renderSetup(); toast("Fresh start — everything erased");
 };
 $("#wipeAll").onclick=async()=>{
   if(!(await ask("Erase all orders?",`<p>This removes all <b>${DB.orders.length}</b> orders on this computer. Returning customers and settings are kept.</p><p>Save a backup first if you might need them.</p>`,[{label:"Cancel",value:false},{label:"Erase orders",value:true,cls:"primary"}]))) return;
@@ -776,9 +903,9 @@ async function buildTally(orders, startNo, headerName){
     const r=FIRST_ROW+i, o=orders[i];
     put(r,"A",startNo+i);
     if(!o){ if(i===0){ put(r,"D",""); put(r,"E",""); put(r,"F",""); } continue; }
-    put(r,"B","Y"); put(r,"C",o.pickedUp?"X":""); put(r,"D",o.name); put(r,"E",o.address||""); put(r,"F",o.phone||"");
+    put(r,"B",o.pay===UNPAID?"":"Y"); put(r,"C",o.pickedUp?"X":""); put(r,"D",o.name); put(r,"E",o.address||""); put(r,"F",o.phone||"");
     PRODUCTS.forEach(p=>put(r,p.col,o.items[p.k]||""));
-    const pay = !o.pay ? "" : o.pay==="Not recorded" ? "Paid (method not recorded)" : `Paid ${o.pay}${o.checkNo?` #${o.checkNo}`:""}`;
+    const pt = payText(o), pay = !pt ? "" : isPaid(o) && !pt.startsWith("Paid") ? "Paid "+pt : pt;
     put(r,"BG",[pay, o.cadet&&!headerName?.includes(o.cadet)?`Cadet: ${o.cadet}`:"", o.notes].filter(Boolean).join(" · "));
   }
   xml = applyEdits(xml, ed);
@@ -873,7 +1000,10 @@ async function readTallyFile(file){
       const items={};
       if(sameLayout) PRODUCTS.forEach(p=>{ const q=Math.floor(+cells[p.col+r]||0); if(q>0) items[p.k]=q; });
       let address=(addrCol?cells[addrCol+r]||"":"").replace(/\s+/g," ").trim(); if(/^address$/i.test(address)) address="";
-      out.push({name, phone:fmtPhone(phoneCol?cells[phoneCol+r]||"":""), address, cadet, notes:notesCol?cells[notesCol+r]||"":"", lastItems:items, delivered:!!(cells["C"+r]&&/x|y/i.test(cells["C"+r])&&/deliver|del/i.test(cells["C"+hdrRow]||cells["C"+(hdrRow-3)]||""))});
+      let notes=notesCol?cells[notesCol+r]||"":"", pay="";
+      if(/^NOT PAID\b/i.test(notes)){ pay=UNPAID; notes=notes.replace(/^NOT PAID\s*·?\s*/i,""); }
+      else { const m=notes.match(/^Paid ([^·]+?)\s*(?:·\s*|$)/); if(m){ pay=/^\(/.test(m[1])?"Not recorded":m[1].replace(/\s*(#.*|\(.*\))$/,"").trim(); notes=notes.slice(m[0].length); } }
+      out.push({name, phone:fmtPhone(phoneCol?cells[phoneCol+r]||"":""), address, cadet, notes, pay, lastItems:items, delivered:!!(cells["C"+r]&&/x|y/i.test(cells["C"+r])&&/deliver|del/i.test(cells["C"+hdrRow]||cells["C"+(hdrRow-3)]||""))});
     }
   }
   return out;
@@ -955,8 +1085,9 @@ $("#addOwnBtn").onclick=()=>{
 };
 function distCard(x){
   const s=rStatus(x), info=[x.phone, x.address&&"📍 "+x.address, x.cadet&&"Cadet: "+x.cadet].filter(Boolean).map(esc).join(" · ");
-  return `<div class="dcard ${s}"><div class="dhead"><div><b>${esc(x.name)}</b>${s==="done"?'<span class="pill done">✓ Done</span>':s==="partial"?'<span class="pill partial">Partly</span>':""}<div class="its">${info}</div></div>
-    ${s==="done"?`<button class="btn sm noprint" data-undo="${x.id}">Undo</button>`:s==="empty"?"":`<button class="btn sm green noprint" data-all="${x.id}">✓ All handed out</button>`}</div>
+  const owe = x.pay===UNPAID;
+  return `<div class="dcard ${s}"><div class="dhead"><div><b>${esc(x.name)}</b>${s==="done"?'<span class="pill done">✓ Done</span>':s==="partial"?'<span class="pill partial">Partly</span>':""}${owe?`<span class="pill unpaid">⏳ Not paid · collect ${money(orderTotal(x))}</span>`:""}<div class="its">${info}</div></div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap">${owe?`<button class="btn sm noprint" data-collect="${x.id}">💵 Mark paid</button>`:""}${s==="done"?`<button class="btn sm noprint" data-undo="${x.id}">Undo</button>`:s==="empty"?"":`<button class="btn sm green noprint" data-all="${x.id}">✓ All handed out</button>`}</div></div>
     <div class="ditems">${rKeys(x).map(k=>`<label class="ditem ${x.got[k]?"got":""}"><input type="checkbox" data-id="${x.id}" data-k="${k}" ${x.got[k]?"checked":""}> ${x.items[k]}× ${esc(PBYK[k].name)}</label>`).join("")||'<span class="muted">No items listed</span>'}</div>
     ${x.notes?`<div class="its" style="margin-top:6px;color:var(--muted);font-size:13px">📝 ${esc(x.notes)}</div>`:""}</div>`;
 }
@@ -967,9 +1098,9 @@ function renderDist(){
   let tot=0, got=0; const rem={};
   R.forEach(x=>rKeys(x).forEach(k=>{ const n=+x.items[k]; tot+=n; if(x.got[k]) got+=n; else rem[k]=(rem[k]||0)+n; }));
   const done=R.filter(x=>rStatus(x)==="done").length;
-  $("#distStats").innerHTML = R.length ? [["Customers done",`${done} / ${R.length}`],["Items handed out",`${got} / ${tot}`],["Still waiting",R.length-done],["Door-to-door",R.filter(x=>x.address).length]].map(([l,v])=>`<div class="stat"><div class="v">${v}</div><div class="l">${l}</div></div>`).join("") : "";
+  $("#distStats").innerHTML = R.length ? [["Customers done",`${done} / ${R.length}`],["Items handed out",`${got} / ${tot}`],["Still waiting",R.length-done],["Door-to-door",R.filter(x=>x.address).length],["Not paid yet",`${R.filter(x=>x.pay===UNPAID).length} · ${money(R.filter(x=>x.pay===UNPAID).reduce((a,x)=>a+orderTotal(x),0))}`]].map(([l,v])=>`<div class="stat"><div class="v">${v}</div><div class="l">${l}</div></div>`).join("") : "";
   const rows=R.filter(x=>{ const s=rStatus(x);
-    if(f==="open"&&s==="done") return false; if(f==="done"&&s!=="done") return false; if(f==="addr"&&!x.address) return false;
+    if(f==="open"&&s==="done") return false; if(f==="done"&&s!=="done") return false; if(f==="addr"&&!x.address) return false; if(f==="unpaid"&&x.pay!==UNPAID) return false;
     if(!q) return true; return norm([x.name,x.phone,x.address,x.cadet,x.notes].join(" ")).includes(q) || (digits(q).length>=3&&digits(x.phone).includes(digits(q)));
   }).sort((a,b)=>lastFirst(a.name).localeCompare(lastFirst(b.name)));
   let h="";
@@ -989,7 +1120,12 @@ $("#dList").addEventListener("change",e=>{
   if(cb.checked) x.got[cb.dataset.k]=true; else delete x.got[cb.dataset.k];
   persist(); if(rStatus(x)==="done") toast(`✓ ${x.name} — all items handed out`); renderDist();
 });
-$("#dList").addEventListener("click",e=>{
+$("#dList").addEventListener("click",async e=>{
+  const col=e.target.dataset.collect;
+  if(col){ const x=DB.roster.find(r=>r.id===col); if(!x) return;
+    const m=await ask("Payment collected?",`<p><b>${esc(x.name)}</b> owes <b>${money(orderTotal(x))}</b>. How did they pay?</p>`,[{label:"Cancel",value:null},...PAY_METHODS.map(p=>({label:p,value:p,cls:"green"}))]);
+    if(m){ x.pay=m; x.checkNo=""; x.paidAtPickup=true; persist(); renderDist(); toast(`${x.name} marked paid (${m})`); }
+    return; }
   const all=e.target.dataset.all, undo=e.target.dataset.undo; if(!all&&!undo) return;
   const x=DB.roster.find(r=>r.id===(all||undo)); if(!x) return;
   if(all){ rKeys(x).forEach(k=>x.got[k]=true); toast(`✓ ${x.name} — all items handed out`); } else x.got={};
@@ -1017,7 +1153,7 @@ $("#exDistCsv").onclick=()=>{
   if(!DB.roster.length){ toast("Load a roster first",1); return; }
   const q=v=>`"${String(v??"").replace(/"/g,'""')}"`, st={done:"Done",partial:"Partly",open:"Waiting",empty:"No items"};
   const rows=DB.roster.slice().sort((a,b)=>(a.cadet||"").localeCompare(b.cadet||"")||lastFirst(a.name).localeCompare(lastFirst(b.name)));
-  const lines=[["Status","Cadet","Customer Name","Phone / Email","Address","Ordered","Still to hand out","Notes","Source"].map(q).join(",")].concat(rows.map(x=>[st[rStatus(x)],x.cadet,x.name,x.phone,x.address,itemsText(x.items),itemsText(Object.fromEntries(rKeys(x).filter(k=>!x.got[k]).map(k=>[k,x.items[k]]))),x.notes,x.src].map(q).join(",")));
+  const lines=[["Status","Payment","Amount","Cadet","Customer Name","Phone / Email","Address","Ordered","Still to hand out","Notes","Source"].map(q).join(",")].concat(rows.map(x=>[st[rStatus(x)],(payText(x)||"Unknown")+(x.paidAtPickup?" (collected at pickup)":""),orderTotal(x),x.cadet,x.name,x.phone,x.address,itemsText(x.items),itemsText(Object.fromEntries(rKeys(x).filter(k=>!x.got[k]).map(k=>[k,x.items[k]]))),x.notes,x.src].map(q).join(",")));
   download(new Blob(["﻿"+lines.join("\r\n")],{type:"text/csv"}),`${DB.settings.year} Delivery Report.csv`);
 };
 $("#clearRoster").onclick=async()=>{

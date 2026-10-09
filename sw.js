@@ -1,6 +1,6 @@
 // Offline support: keeps a copy of the app on the device so it opens without internet.
 // Bump VERSION whenever any file here changes so phones pick up the update.
-const VERSION = "wreaths-2026-2";
+const VERSION = "wreaths-2026-3";
 const FILES = ["./", "index.html", "manifest.webmanifest", "icon-192.png", "icon-512.png", "apple-touch-icon.png"];
 
 self.addEventListener("install", e => {
