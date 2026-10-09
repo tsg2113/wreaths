@@ -37,7 +37,21 @@ main{max-width:1180px;margin:0 auto;padding:16px 16px 120px}
 label{display:block;font-size:13px;color:var(--muted);margin-bottom:4px;font-weight:600}
 input[type=text],input[type=tel],input[type=number],input[type=search],select,textarea{width:100%;font:inherit;padding:10px 12px;border:1px solid #b9c2bc;border-radius:8px;background:#fff;color:var(--ink)}
 input:focus,select:focus,textarea:focus{outline:2px solid var(--green-2);outline-offset:0;border-color:var(--green-2)}
-.row{display:grid;gap:12px;grid-template-columns:2fr 1.5fr 1.2fr}
+.row{display:grid;gap:12px;grid-template-columns:1.6fr 1.2fr 2fr}
+.ns{display:none}
+.dgroup{margin:16px 0 8px;font-weight:700;color:var(--green);font-size:15px;border-bottom:2px solid var(--green-soft);padding-bottom:4px}
+.dcard{border:1px solid var(--line);border-left:6px solid #c9d1cb;border-radius:10px;padding:10px 12px;margin-bottom:10px;background:#fff}
+.dcard.partial{border-left-color:var(--gold)}
+.dcard.done{border-left-color:var(--green-2);background:#f6faf7}
+.dhead{display:flex;gap:10px;justify-content:space-between;align-items:flex-start}
+.dhead .its{color:var(--muted);font-size:13px}
+.ditems{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.ditem{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin:0;font-size:15px;color:var(--ink);font-weight:600;cursor:pointer;background:#fff}
+.ditem input{width:20px;height:20px;accent-color:var(--green);margin:0}
+.ditem.got{background:var(--green-soft);border-color:var(--green-2);color:var(--muted);text-decoration:line-through}
+.pill{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px;margin-left:6px;vertical-align:2px}
+.pill.done{background:var(--green-soft);color:var(--green)}
+.pill.partial{background:#fff4dc;color:#8a6510}
 @media (max-width:760px){.row{grid-template-columns:1fr}}
 .btn{font:inherit;border:1px solid var(--line);background:#fff;color:var(--ink);padding:9px 16px;border-radius:8px;cursor:pointer;font-weight:600}
 .btn:hover{background:#f1f3f1}
@@ -126,8 +140,11 @@ header{padding-top:env(safe-area-inset-top)}
 @media (max-width:640px){
   .hwrap{gap:8px;padding:8px 12px}
   .brand{font-size:17px}
-  nav{width:100%;order:3;display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
-  nav button{padding:8px 4px;font-size:14px}
+  nav{width:100%;order:3;display:grid;grid-template-columns:repeat(5,1fr);gap:3px}
+  nav button{padding:8px 2px;font-size:13px}
+  .nl{display:none}.ns{display:inline}
+  .dhead{flex-wrap:wrap}
+  .ditem{flex:1 1 100%}
   .backup{font-size:12px}
   main{padding:12px 12px 120px}
   .card{padding:14px 12px}
@@ -139,7 +156,7 @@ header{padding-top:env(safe-area-inset-top)}
   .total{font-size:22px}
   .bar .in{gap:8px;padding:10px 12px}
   .bar .btn{padding:10px 14px}
-  .list th:nth-child(6),.list td:nth-child(6){display:none}
+  #oTable th:nth-child(5),#oTable td:nth-child(5){display:none}
   input[type=text],input[type=search],select{font-size:16px}
 }
 @media print{
@@ -155,10 +172,11 @@ header{padding-top:env(safe-area-inset-top)}
   <div class="hwrap">
     <div class="brand">🎄 Wreath Order Desk <small id="hdrYear"></small></div>
     <nav>
-      <button data-tab="new" class="on">New Order</button>
-      <button data-tab="orders">Orders <span id="ordCount"></span></button>
+      <button data-tab="new" class="on"><span class="nl">New Order</span><span class="ns">New</span></button>
+      <button data-tab="orders">Orders <span id="ordCount" class="nl"></span></button>
       <button data-tab="totals">Totals</button>
-      <button data-tab="setup">Setup &amp; Export</button>
+      <button data-tab="dist"><span class="nl">Distribution</span><span class="ns">Deliver</span></button>
+      <button data-tab="setup"><span class="nl">Setup &amp; Export</span><span class="ns">Setup</span></button>
     </nav>
     <div class="backup"><span id="backupInfo"></span><button class="btn sm" id="backupBtn">Save backup</button></div>
   </div>
@@ -186,9 +204,8 @@ header{padding-top:env(safe-area-inset-top)}
         <input type="text" id="fPhone" autocomplete="off" placeholder="(555) 555-5555">
       </div>
       <div>
-        <label for="fCadet">Cadet credit (optional)</label>
-        <input type="text" id="fCadet" list="cadetList" autocomplete="off" placeholder="Cadet who made the sale">
-        <datalist id="cadetList"></datalist>
+        <label for="fAddr">Address (door-to-door delivery)</label>
+        <input type="text" id="fAddr" autocomplete="off" placeholder="Leave blank for church pickup">
       </div>
     </div>
     <div class="lastyear" id="lastYear"><span id="lastYearTxt"></span><button class="btn sm green" id="sameAsLast">Same as last year</button></div>
@@ -229,14 +246,7 @@ header{padding-top:env(safe-area-inset-top)}
 <section class="tab" id="tab-orders">
   <div class="card">
     <div class="toolbar">
-      <input type="search" id="oSearch" placeholder="Search name, phone, cadet, order #">
-      <select id="oFilter" style="max-width:200px">
-        <option value="">All orders</option>
-        <option value="open">Not picked up yet</option>
-        <option value="done">Picked up</option>
-      </select>
-      <span class="sp" style="flex:1"></span>
-      <button class="btn" id="printList">🖨 Print pickup list</button>
+      <input type="search" id="oSearch" placeholder="Search name, phone, address, order #">
     </div>
     <div class="wrapx"><table class="list" id="oTable"></table></div>
   </div>
@@ -249,6 +259,40 @@ header{padding-top:env(safe-area-inset-top)}
     <div class="card"><h2>What to order from the supplier</h2><table class="list" id="prodTotals"></table></div>
     <div class="card"><h2>Money collected</h2><table class="list" id="payTotals"></table>
       <h2 style="margin-top:24px">By cadet</h2><table class="list" id="cadetTotals"></table></div>
+  </div>
+</section>
+
+<!-- DISTRIBUTION -->
+<section class="tab" id="tab-dist">
+  <div class="card noprint">
+    <h2>Distribution day</h2>
+    <p class="help">Load the roster: the tally sheets (.xlsx) or backup files (.json) each family turned in, and/or this device's own orders. Then look up each customer and check off items as they're handed out or delivered.</p>
+    <input type="file" id="impRoster" accept=".xlsx,.json,application/json" multiple style="display:none">
+    <div class="toolbar" style="margin-bottom:0">
+      <button class="btn green" id="impRosterBtn">📂 Load tally sheets / backups</button>
+      <button class="btn" id="addOwnBtn">➕ Add this device's orders</button>
+      <span class="muted" id="rosterInfo"></span>
+    </div>
+  </div>
+  <div class="stats noprint" id="distStats"></div>
+  <div class="card">
+    <div class="toolbar">
+      <input type="search" id="dSearch" placeholder="Search name, phone, address, cadet">
+      <select id="dFilter" style="max-width:190px"><option value="open">Still to hand out</option><option value="">Everyone</option><option value="done">Done</option><option value="addr">Door-to-door only</option></select>
+      <select id="dGroup" style="max-width:170px"><option value="">A–Z by last name</option><option value="cadet">Group by cadet</option></select>
+      <span style="flex:1"></span>
+      <button class="btn" id="dPrint">🖨 Print list</button>
+    </div>
+    <div id="dList"></div>
+  </div>
+  <div class="card noprint">
+    <h2>Items still to hand out</h2>
+    <table class="list" id="dRemain"></table>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;align-items:center">
+      <button class="btn primary" id="exDistTally">⬇ Tally sheets with Delivered marked</button>
+      <button class="btn" id="exDistCsv">⬇ Delivery report (.csv)</button>
+      <button class="btn link" id="clearRoster">Clear roster</button>
+    </div>
   </div>
 </section>
 
@@ -368,11 +412,11 @@ const ROWS_PER_SHEET = 52, FIRST_ROW = 6;
 const KEY = "wreathDesk.v1";
 let storageOK = true;
 const DEFAULT_SETTINGS = {year:"2026",troop:"2113",dates:"",payable:"Church of the Epiphany",sheetName:"",prices:{},template:null,templateName:null,lastBackup:null};
-let DB = {settings:{...DEFAULT_SETTINGS}, orders:[], customers:[]};
+let DB = {settings:{...DEFAULT_SETTINGS}, orders:[], customers:[], roster:[]};
 function load(){
   try{
     const raw = localStorage.getItem(KEY);
-    if(raw){ const d = JSON.parse(raw); DB = {settings:{...DEFAULT_SETTINGS,...(d.settings||{})}, orders:d.orders||[], customers:d.customers||[]}; }
+    if(raw){ const d = JSON.parse(raw); DB = {settings:{...DEFAULT_SETTINGS,...(d.settings||{})}, orders:d.orders||[], customers:d.customers||[], roster:d.roster||[]}; }
     localStorage.setItem(KEY+".probe","1");
   }catch(e){ storageOK=false; }
 }
@@ -415,7 +459,7 @@ function showTab(t){
   document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("on",b.dataset.tab===t));
   document.querySelectorAll(".tab").forEach(s=>s.classList.toggle("on",s.id==="tab-"+t));
   $("#bar").style.display = t==="new" ? "" : "none";
-  if(t==="orders") renderOrders(); if(t==="totals") renderTotals(); if(t==="setup") renderSetup();
+  if(t==="orders") renderOrders(); if(t==="totals") renderTotals(); if(t==="setup") renderSetup(); if(t==="dist") renderDist();
   window.scrollTo(0,0);
 }
 
@@ -469,15 +513,14 @@ let editingId = null, lastItems = null;
 function formDirty(){ return $("#fName").value.trim() || orderQty({items:readItems()})>0; }
 function resetForm(){
   editingId=null; lastItems=null;
-  ["#fName","#fPhone","#fCadet","#fCheck","#fNotes"].forEach(s=>$(s).value="");
-  $("#fCadet").value = DB.settings.defaultCadet||"";
+  ["#fName","#fPhone","#fAddr","#fCheck","#fNotes"].forEach(s=>$(s).value="");
   document.querySelectorAll("#payBox input").forEach(r=>r.checked=false); payChanged();
   setItems({}); $("#editing").classList.remove("show"); $("#saveBtn").textContent="Save order";
   $("#lastYear").classList.remove("show"); hideSugg(); if(isPhone) window.scrollTo(0,0); else $("#fName").focus();
 }
 function loadIntoForm(o){
   showTab("new"); editingId=o.id;
-  $("#fName").value=o.name; $("#fPhone").value=o.phone||""; $("#fCadet").value=o.cadet||""; $("#fCheck").value=o.checkNo||""; $("#fNotes").value=o.notes||"";
+  $("#fName").value=o.name; $("#fPhone").value=o.phone||""; $("#fAddr").value=o.address||""; $("#fCheck").value=o.checkNo||""; $("#fNotes").value=o.notes||"";
   document.querySelectorAll("#payBox input").forEach(r=>r.checked=r.value===o.pay); payChanged();
   setItems(o.items); $("#editing").textContent=`Editing order #${o.num}`; $("#editing").classList.add("show"); $("#saveBtn").textContent="Update order";
   $("#lastYear").classList.remove("show");
@@ -491,7 +534,8 @@ async function saveOrder(){
     const dup = DB.orders.find(o=>norm(o.name)===norm(name));
     if(dup && !(await ask("Already ordered this year?",`<p><b>${esc(dup.name)}</b> already has order #${dup.num} (${esc(itemsText(dup.items))}).</p><p>Save this as an additional order?</p>`,[{label:"Cancel",value:false},{label:"Save another order",value:true,cls:"primary"}]))) return;
   }
-  const rec = {name, phone:fmtPhone($("#fPhone").value), cadet:$("#fCadet").value.trim(), items, pay, checkNo:pay==="Check"?$("#fCheck").value.trim():"", notes:$("#fNotes").value.trim()};
+  const cadet = editingId ? (DB.orders.find(x=>x.id===editingId).cadet||"") : (DB.settings.defaultCadet||"");
+  const rec = {name, phone:fmtPhone($("#fPhone").value), address:$("#fAddr").value.trim().replace(/\s+/g," "), cadet, items, pay, checkNo:pay==="Check"?$("#fCheck").value.trim():"", notes:$("#fNotes").value.trim()};
   let o;
   if(editingId){ o=DB.orders.find(x=>x.id===editingId); Object.assign(o,rec,{updated:new Date().toISOString()}); }
   else { o={id:uid(), num:nextNum(), created:new Date().toISOString(), pickedUp:false, ...rec}; DB.orders.push(o); }
@@ -517,13 +561,13 @@ function searchPeople(q){
 function showSugg(q){
   suggList = searchPeople(q); suggIdx=-1; const box=$("#sugg");
   if(!suggList.length){ hideSugg(); return; }
-  box.innerHTML = suggList.map((p,i)=>`<div data-i="${i}"><b>${esc(p.name)}</b> <span class="muted">${esc(p.phone||"")}</span>${p.src==="ty"?`<span class="tag ty">ordered this year #${p.num}</span>`:`<span class="tag ly">last year</span>`}${p.cadet?`<span class="tag">${esc(p.cadet)}</span>`:""}</div>`).join("");
+  box.innerHTML = suggList.map((p,i)=>`<div data-i="${i}"><b>${esc(p.name)}</b> <span class="muted">${esc(p.phone||"")}</span>${p.src==="ty"?`<span class="tag ty">ordered this year #${p.num}</span>`:`<span class="tag ly">last year</span>`}${p.address?`<div class="muted" style="font-size:13px">${esc(p.address)}</div>`:""}</div>`).join("");
   box.classList.add("show");
 }
 function hideSugg(){ $("#sugg").classList.remove("show"); suggIdx=-1; }
 function pickSugg(i){
   const p=suggList[i]; if(!p) return;
-  $("#fName").value=p.name; $("#fPhone").value=fmtPhone(p.phone||""); if(p.cadet && !$("#fCadet").value) $("#fCadet").value=p.cadet;
+  $("#fName").value=p.name; $("#fPhone").value=fmtPhone(p.phone||""); if(p.address && !$("#fAddr").value) $("#fAddr").value=p.address;
   hideSugg();
   const ly = p.src==="ly" ? p : DB.customers.find(c=>norm(c.name)===norm(p.name));
   lastItems = ly && ly.lastItems && Object.keys(ly.lastItems).length ? ly.lastItems : null;
@@ -549,21 +593,20 @@ $("#sugg").addEventListener("mousedown",e=>{ const d=e.target.closest("[data-i]"
 
 // ---------- orders list ----------
 function renderOrders(){
-  const q=norm($("#oSearch").value), f=$("#oFilter").value;
+  const q=norm($("#oSearch").value);
   const rows = DB.orders.slice().sort((a,b)=>a.num-b.num).filter(o=>{
-    if(f==="open"&&o.pickedUp) return false; if(f==="done"&&!o.pickedUp) return false;
-    if(!q) return true; return norm([o.num,o.name,o.phone,o.cadet,o.notes].join(" ")).includes(q) || (digits(q).length>=3 && digits(o.phone).includes(digits(q)));
+    if(!q) return true; return norm([o.num,o.name,o.phone,o.address,o.cadet,o.notes].join(" ")).includes(q) || (digits(q).length>=3 && digits(o.phone).includes(digits(q)));
   });
   if(!DB.orders.length){ $("#oTable").innerHTML=`<tr><td class="empty">No orders yet. They'll show up here as you save them.</td></tr>`; return; }
-  $("#oTable").innerHTML = `<thead><tr><th>Picked up</th><th>#</th><th>Customer</th><th>Order</th><th class="num">Total</th><th>Paid by</th><th class="noprint"></th></tr></thead><tbody>`+
-    rows.map(o=>`<tr><td><input type="checkbox" class="pick" data-id="${o.id}" ${o.pickedUp?"checked":""} aria-label="Picked up"></td><td>${o.num}</td>
-      <td><b>${esc(o.name)}</b><div class="its">${esc(o.phone||"")}${o.cadet?" · Cadet: "+esc(o.cadet):""}</div></td>
+  $("#oTable").innerHTML = `<thead><tr><th>#</th><th>Customer</th><th>Order</th><th class="num">Total</th><th>Paid by</th><th class="noprint"></th></tr></thead><tbody>`+
+    rows.map(o=>`<tr><td>${o.num}</td>
+      <td><b>${esc(o.name)}</b><div class="its">${esc(o.phone||"")}${o.address?`<br>📍 ${esc(o.address)}`:""}</div></td>
       <td>${esc(itemsText(o.items))}${o.notes?`<div class="its">📝 ${esc(o.notes)}</div>`:""}</td>
       <td class="num">${money(orderTotal(o))}</td><td>${esc(o.pay)}${o.checkNo?` #${esc(o.checkNo)}`:""}</td>
       <td class="noprint" style="white-space:nowrap"><button class="btn sm" data-edit="${o.id}">Edit</button> <button class="btn link sm" data-del="${o.id}">Delete</button></td></tr>`).join("")+
-    (rows.length?"":`<tr><td colspan="7" class="empty">No matching orders.</td></tr>`)+`</tbody>`;
+    (rows.length?"":`<tr><td colspan="6" class="empty">No matching orders.</td></tr>`)+`</tbody>`;
 }
-$("#oSearch").oninput=renderOrders; $("#oFilter").onchange=renderOrders;
+$("#oSearch").oninput=renderOrders;
 $("#oTable").addEventListener("click",async e=>{
   const ed=e.target.dataset.edit, del=e.target.dataset.del;
   if(ed) loadIntoForm(DB.orders.find(o=>o.id===ed));
@@ -571,14 +614,12 @@ $("#oTable").addEventListener("click",async e=>{
     if(await ask("Delete this order?",`<p>Order #${o.num} for <b>${esc(o.name)}</b> (${money(orderTotal(o))}) will be removed.</p>`,[{label:"Keep it",value:false},{label:"Delete",value:true,cls:"primary"}])){
       DB.orders=DB.orders.filter(x=>x.id!==del); persist(); renderOrders(); updateCounts(); toast("Order deleted"); } }
 });
-$("#oTable").addEventListener("change",e=>{ if(e.target.classList.contains("pick")){ const o=DB.orders.find(x=>x.id===e.target.dataset.id); o.pickedUp=e.target.checked; persist(); }});
-$("#printList").onclick=()=>{ const s=$("#tab-orders"); s.classList.add("print"); window.print(); s.classList.remove("print"); };
 
 // ---------- totals ----------
 function renderTotals(){
   const os=DB.orders, grand=os.reduce((a,o)=>a+orderTotal(o),0), items=os.reduce((a,o)=>a+orderQty(o),0);
   const wreaths=os.reduce((a,o)=>a+Object.entries(o.items).filter(([k])=>PBYK[k]?.cat==="Wreaths").reduce((s,[,q])=>s+q,0),0);
-  $("#statBox").innerHTML=[["Orders",os.length],["Total sales",money(grand)],["Items",items],["Wreaths",wreaths],["Picked up",`${os.filter(o=>o.pickedUp).length} / ${os.length}`]].map(([l,v])=>`<div class="stat"><div class="v">${v}</div><div class="l">${l}</div></div>`).join("");
+  $("#statBox").innerHTML=[["Orders",os.length],["Total sales",money(grand)],["Items",items],["Wreaths",wreaths],["Door-to-door",os.filter(o=>o.address).length]].map(([l,v])=>`<div class="stat"><div class="v">${v}</div><div class="l">${l}</div></div>`).join("");
   let ph="<thead><tr><th>Item</th><th class='num'>Qty</th><th class='num'>Sales</th></tr></thead><tbody>", cat="";
   PRODUCTS.forEach(p=>{ const q=os.reduce((a,o)=>a+(o.items[p.k]||0),0);
     if(p.cat!==cat){ cat=p.cat; ph+=`<tr><td colspan="3" style="background:#fafbfa;font-weight:700;color:var(--green)">${cat}</td></tr>`; }
@@ -606,8 +647,7 @@ function renderSetup(){
   $("#tplInfo").textContent = s.template ? `Using: ${s.templateName}` : "Using the built-in 2026 Tally Sheet";
 }
 ["sYear","sTroop","sDates","sPayable","sSheetName","sCadet"].forEach(id=>$("#"+id).addEventListener("change",e=>{
-  const map={sYear:"year",sTroop:"troop",sDates:"dates",sPayable:"payable",sSheetName:"sheetName",sCadet:"defaultCadet"}; DB.settings[map[id]]=e.target.value.trim(); persist(); updateCounts();
-  if(id==="sCadet" && !editingId && !$("#fName").value.trim()) $("#fCadet").value=DB.settings.defaultCadet; }));
+  const map={sYear:"year",sTroop:"troop",sDates:"dates",sPayable:"payable",sSheetName:"sheetName",sCadet:"defaultCadet"}; DB.settings[map[id]]=e.target.value.trim(); persist(); updateCounts(); }));
 $("#priceTable").addEventListener("change",e=>{ const k=e.target.dataset.price; if(!k) return; DB.settings.prices[k]= e.target.value===""?undefined:+e.target.value; persist(); refreshPrices(); updateTotal(); });
 
 function updateCounts(){
@@ -615,7 +655,6 @@ function updateCounts(){
   $("#hdrYear").textContent = DB.settings.year ? `· ${DB.settings.year}` : "";
   const lb=DB.settings.lastBackup, since=DB.orders.filter(o=>!lb||(o.updated||o.created)>lb).length;
   $("#backupInfo").textContent = !DB.orders.length ? "" : since ? `${since} order${since>1?"s":""} not backed up` : "Backed up ✓";
-  $("#cadetList").innerHTML=[...new Set([...DB.orders,...DB.customers].map(o=>o.cadet).filter(Boolean))].sort().map(c=>`<option value="${esc(c)}">`).join("");
 }
 
 // ---------- backup ----------
@@ -623,7 +662,7 @@ $("#backupBtn").onclick=async()=>{
   const now=new Date(), {template,...settings}=DB.settings;
   const who = DB.settings.defaultCadet ? DB.settings.defaultCadet+" " : "";
   const name = `${who}Wreath Orders Backup ${now.toISOString().slice(0,16).replace("T"," ").replace(":","")}.json`.replace(/[\\/:*?"<>|]/g,"-");
-  const blob = new Blob([JSON.stringify({app:"wreath-desk",version:1,saved:now.toISOString(),settings,orders:DB.orders,customers:DB.customers},null,1)],{type:"application/json"});
+  const blob = new Blob([JSON.stringify({app:"wreath-desk",version:1,saved:now.toISOString(),settings,orders:DB.orders,customers:DB.customers,roster:DB.roster},null,1)],{type:"application/json"});
   if(isPhone && navigator.canShare){
     const file = new File([blob],name,{type:"application/json"});
     if(navigator.canShare({files:[file]})){
@@ -642,10 +681,11 @@ $("#impBackup").onchange=async e=>{
   const mode = await ask("Load backup",`<p>The file has <b>${d.orders.length}</b> orders. This computer has <b>${DB.orders.length}</b>.</p><p><b>Merge</b> adds orders you don't already have (use this to combine laptops). <b>Replace</b> wipes this computer's orders and uses the file instead.</p>`,
     [{label:"Cancel",value:null},{label:"Replace",value:"replace"},{label:"Merge",value:"merge",cls:"green"}]);
   if(!mode) return;
-  if(mode==="replace"){ DB.orders=d.orders; if(d.settings){ const {template,templateName,lastBackup,...s}=d.settings; Object.assign(DB.settings,s); } }
+  if(mode==="replace"){ DB.orders=d.orders; if(Array.isArray(d.roster)) DB.roster=d.roster; if(d.settings){ const {template,templateName,lastBackup,...s}=d.settings; Object.assign(DB.settings,s); } }
   let added=0;
   if(mode==="merge"){ const ids=new Set(DB.orders.map(o=>o.id)); let n=nextNum();
-    d.orders.slice().sort((a,b)=>a.num-b.num).forEach(o=>{ if(ids.has(o.id)) return; DB.orders.push({...o,num:n++}); added++; }); }
+    d.orders.slice().sort((a,b)=>a.num-b.num).forEach(o=>{ if(ids.has(o.id)) return; DB.orders.push({...o,num:n++}); added++; });
+    const rids=new Set(DB.roster.map(x=>x.id)); (d.roster||[]).forEach(x=>{ if(!rids.has(x.id)) DB.roster.push(x); }); }
   mergeCustomers(d.customers||[]); persist(); updateCounts(); renderSetup();
   toast(mode==="merge"?`Merged — ${added} new order${added===1?"":"s"} added`:"Backup loaded");
 };
@@ -736,10 +776,10 @@ async function buildTally(orders, startNo, headerName){
     const r=FIRST_ROW+i, o=orders[i];
     put(r,"A",startNo+i);
     if(!o){ if(i===0){ put(r,"D",""); put(r,"E",""); put(r,"F",""); } continue; }
-    put(r,"B","Y"); put(r,"C",o.pickedUp?"X":""); put(r,"D",o.name); put(r,"E",""); put(r,"F",o.phone||"");
+    put(r,"B","Y"); put(r,"C",o.pickedUp?"X":""); put(r,"D",o.name); put(r,"E",o.address||""); put(r,"F",o.phone||"");
     PRODUCTS.forEach(p=>put(r,p.col,o.items[p.k]||""));
-    const pay = o.pay+(o.checkNo?` #${o.checkNo}`:"");
-    put(r,"BG",[o.pay==="Not recorded"?"Paid (method not recorded)":`Paid ${pay}`, o.cadet&&!headerName?.includes(o.cadet)?`Cadet: ${o.cadet}`:"", o.notes].filter(Boolean).join(" · "));
+    const pay = !o.pay ? "" : o.pay==="Not recorded" ? "Paid (method not recorded)" : `Paid ${o.pay}${o.checkNo?` #${o.checkNo}`:""}`;
+    put(r,"BG",[pay, o.cadet&&!headerName?.includes(o.cadet)?`Cadet: ${o.cadet}`:"", o.notes].filter(Boolean).join(" · "));
   }
   xml = applyEdits(xml, ed);
   files[sheetPath]=te.encode(xml);
@@ -783,8 +823,8 @@ $("#exTally").onclick=exportTally;
 $("#exCsv").onclick=()=>{
   if(!DB.orders.length){ toast("No orders to export yet",1); return; }
   const q=v=>`"${String(v??"").replace(/"/g,'""')}"`;
-  const head=["Order #","Customer Name","Phone / Email","Cadet","Paid By","Check #","Picked Up",...PRODUCTS.map(p=>p.name),"Total Qty","Total $","Notes","Entered"];
-  const lines=[head.map(q).join(",")].concat(DB.orders.slice().sort((a,b)=>a.num-b.num).map(o=>[o.num,o.name,o.phone,o.cadet,o.pay,o.checkNo,o.pickedUp?"Yes":"",...PRODUCTS.map(p=>o.items[p.k]||""),orderQty(o),orderTotal(o),o.notes,(o.created||"").slice(0,10)].map(q).join(",")));
+  const head=["Order #","Customer Name","Phone / Email","Address","Cadet","Paid By","Check #",...PRODUCTS.map(p=>p.name),"Total Qty","Total $","Notes","Entered"];
+  const lines=[head.map(q).join(",")].concat(DB.orders.slice().sort((a,b)=>a.num-b.num).map(o=>[o.num,o.name,o.phone,o.address,o.cadet,o.pay,o.checkNo,...PRODUCTS.map(p=>o.items[p.k]||""),orderQty(o),orderTotal(o),o.notes,(o.created||"").slice(0,10)].map(q).join(",")));
   download(new Blob(["﻿"+lines.join("\r\n")],{type:"text/csv"}),`${DB.settings.year} Wreath Orders.csv`);
 };
 $("#impTplBtn").onclick=()=>$("#impTpl").click();
@@ -814,14 +854,17 @@ async function readTallyFile(file){
     sst=[...d.getElementsByTagNameNS("*","si")].map(si=>[...si.getElementsByTagNameNS("*","t")].filter(t=>t.parentNode.localName!=="rPh").map(t=>t.textContent).join("")); }
   for(const path of Object.keys(files).filter(p=>/^xl\/worksheets\/[^/]+\.xml$/.test(p))){
     const cells=parseSheetXml(td.decode(files[path]),sst);
-    let nameCol, hdrRow, phoneCol, cadet="";
+    let nameCol, hdrRow, phoneCol, addrCol, notesCol, cadet="";
     for(const [ref,v] of Object.entries(cells)){
       const m=ref.match(/^([A-Z]+)(\d+)$/); if(!m) continue;
       if(/customer\s*name/i.test(v) && (!hdrRow || +m[2]<hdrRow)){ nameCol=m[1]; hdrRow=+m[2]; }
       if(/^cadet/i.test(v) && +m[2]<=4){ const nb=cells[nextCol(m[1])+m[2]]; if(nb && !/^cadet\s*name$/i.test(nb) && !/troop|all cadets/i.test(nb)) cadet=nb; }
     }
     if(!nameCol) continue;
-    for(const [ref,v] of Object.entries(cells)){ const m=ref.match(/^([A-Z]+)(\d+)$/); if(+m[2]===hdrRow && /phone|email/i.test(v)) phoneCol=m[1]; }
+    for(const [ref,v] of Object.entries(cells)){ const m=ref.match(/^([A-Z]+)(\d+)$/); if(!m) continue;
+      if(+m[2]===hdrRow && /phone|email/i.test(v)) phoneCol=m[1];
+      if(+m[2]<=hdrRow && /^address$/i.test(v)) addrCol=m[1];
+      if(+m[2]<=hdrRow && /^notes?$/i.test(v)) notesCol=m[1]; }
     const sameLayout = [hdrRow-2,hdrRow-1,hdrRow].some(r=>/classic wreath/i.test(cells["G"+r]||""));
     const maxRow=Math.max(...Object.keys(cells).map(r=>+r.replace(/^[A-Z]+/,"")));
     for(let r=hdrRow+1;r<=maxRow;r++){
@@ -829,7 +872,8 @@ async function readTallyFile(file){
       if(!name || /^(name|customer name|totals?)$/i.test(name) || /^[\d.]+$/.test(name)) continue;
       const items={};
       if(sameLayout) PRODUCTS.forEach(p=>{ const q=Math.floor(+cells[p.col+r]||0); if(q>0) items[p.k]=q; });
-      out.push({name, phone:fmtPhone(phoneCol?cells[phoneCol+r]||"":""), cadet, lastItems:items});
+      let address=(addrCol?cells[addrCol+r]||"":"").replace(/\s+/g," ").trim(); if(/^address$/i.test(address)) address="";
+      out.push({name, phone:fmtPhone(phoneCol?cells[phoneCol+r]||"":""), address, cadet, notes:notesCol?cells[notesCol+r]||"":"", lastItems:items, delivered:!!(cells["C"+r]&&/x|y/i.test(cells["C"+r])&&/deliver|del/i.test(cells["C"+hdrRow]||cells["C"+(hdrRow-3)]||""))});
     }
   }
   return out;
@@ -837,16 +881,16 @@ async function readTallyFile(file){
 function readCsv(text){
   const rows=text.replace(/^﻿/,"").split(/\r?\n/).filter(l=>l.trim()).map(l=>{ const a=[]; let cur="",q=false; for(let i=0;i<l.length;i++){const ch=l[i]; if(q){ if(ch==='"'&&l[i+1]==='"'){cur+='"';i++;} else if(ch==='"') q=false; else cur+=ch; } else if(ch==='"') q=true; else if(ch===','){a.push(cur);cur="";} else cur+=ch; } a.push(cur); return a.map(s=>s.trim()); });
   if(!rows.length) return [];
-  const h=rows[0].map(x=>x.toLowerCase()); let ni=h.findIndex(x=>/name/.test(x)&&!/cadet/.test(x)), pi=h.findIndex(x=>/phone|email/.test(x)), ci=h.findIndex(x=>/cadet/.test(x)), start=1;
-  if(ni<0){ ni=0; pi=1; start=0; }
-  return rows.slice(start).filter(r=>r[ni]).map(r=>({name:r[ni],phone:fmtPhone(pi>=0?r[pi]:""),cadet:ci>=0?r[ci]||"":"",lastItems:{}}));
+  const h=rows[0].map(x=>x.toLowerCase()); let ni=h.findIndex(x=>/name/.test(x)&&!/cadet/.test(x)), pi=h.findIndex(x=>/phone|email/.test(x)), ci=h.findIndex(x=>/cadet/.test(x)), ai=h.findIndex(x=>/address/.test(x)), start=1;
+  if(ni<0){ ni=0; pi=1; ai=-1; start=0; }
+  return rows.slice(start).filter(r=>r[ni]).map(r=>({name:r[ni],phone:fmtPhone(pi>=0?r[pi]:""),address:ai>=0?r[ai]||"":"",cadet:ci>=0?r[ci]||"":"",lastItems:{}}));
 }
 function mergeCustomers(list){
   let added=0; const idx=new Map(DB.customers.map((c,i)=>[norm(c.name)+"|"+digits(c.phone),i]));
   for(const c of list){
     const k=norm(c.name)+"|"+digits(c.phone);
-    if(idx.has(k)){ const ex=DB.customers[idx.get(k)]; if(c.lastItems&&Object.keys(c.lastItems).length) ex.lastItems=c.lastItems; if(c.cadet&&!ex.cadet) ex.cadet=c.cadet; }
-    else { idx.set(k,DB.customers.length); DB.customers.push({name:c.name,phone:c.phone,cadet:c.cadet||"",lastItems:c.lastItems||{}}); added++; }
+    if(idx.has(k)){ const ex=DB.customers[idx.get(k)]; if(c.lastItems&&Object.keys(c.lastItems).length) ex.lastItems=c.lastItems; if(c.cadet&&!ex.cadet) ex.cadet=c.cadet; if(c.address) ex.address=c.address; }
+    else { idx.set(k,DB.customers.length); DB.customers.push({name:c.name,phone:c.phone,address:c.address||"",cadet:c.cadet||"",lastItems:c.lastItems||{}}); added++; }
   }
   return added;
 }
@@ -863,6 +907,122 @@ $("#impLast").onchange=async e=>{
 $("#clearCust").onclick=async()=>{
   if(!DB.customers.length) return;
   if(await ask("Clear returning customers?","<p>This only removes last year's customer list used for look-ups. This year's orders are not touched.</p>",[{label:"Cancel",value:false},{label:"Clear list",value:true,cls:"primary"}])){ DB.customers=[]; persist(); renderSetup(); updateCounts(); }
+};
+
+// ---------- distribution ----------
+const rKey = x => x.src+"|"+norm(x.name)+"|"+digits(x.phone);
+const rKeys = x => PRODUCTS.filter(p=>(x.items||{})[p.k]>0).map(p=>p.k);
+function rStatus(x){ const ks=rKeys(x), g=ks.filter(k=>x.got&&x.got[k]).length; return !ks.length?"empty" : g===ks.length?"done" : g?"partial" : "open"; }
+const lastFirst = n => { const w=norm(n).split(" "); return w.slice(-1)[0]+" "+w.slice(0,-1).join(" "); };
+// Replaces everything previously loaded from the same source, keeping check marks for matching customers.
+function addToRoster(src, list){
+  const old=new Map(DB.roster.filter(x=>x.src===src).map(x=>[rKey(x),x]));
+  DB.roster=DB.roster.filter(x=>x.src!==src);
+  for(const e of list){
+    const n={id:uid(),src,cadet:e.cadet||"",name:e.name,phone:e.phone||"",address:e.address||"",notes:e.notes||"",items:e.items||{},pay:e.pay||"",checkNo:e.checkNo||"",got:{}};
+    const prev=old.get(rKey(n));
+    if(prev) n.got={...prev.got}; else if(e.delivered) rKeys(n).forEach(k=>n.got[k]=true);
+    DB.roster.push(n);
+  }
+  return old.size>0;
+}
+$("#impRosterBtn").onclick=()=>$("#impRoster").click();
+$("#impRoster").onchange=async e=>{
+  const fs=[...e.target.files]; e.target.value=""; const ok=[], warn=[], bad=[];
+  for(const f of fs){
+    try{
+      const stem=f.name.replace(/\.[^.]+$/,""); let list, src=f.name;
+      if(/\.json$/i.test(f.name)){
+        const d=JSON.parse(await f.text()); if(!Array.isArray(d.orders)) throw new Error("not a backup");
+        const dc=d.settings?.defaultCadet||""; if(dc) src=`${dc} (backup)`;
+        list=d.orders.map(o=>({...o,cadet:o.cadet||dc||stem}));
+      } else {
+        const rows=await readTallyFile(f);
+        list=rows.map(r=>({...r,items:r.lastItems,cadet:r.cadet||stem}));
+        if(rows.length && rows.every(r=>!Object.keys(r.lastItems).length)) warn.push(`${f.name}: items not recognized`);
+      }
+      if(!list.length){ bad.push(f.name); continue; }
+      const rep=addToRoster(src,list); ok.push(`${list.length} from ${stem}${rep?" (updated)":""}`);
+    }catch(err){ console.error(err); bad.push(f.name); }
+  }
+  persist(); renderDist();
+  toast([ok.length?"Loaded "+ok.join(", "):"", warn.join("; "), bad.length?"Couldn't read: "+bad.join(", "):""].filter(Boolean).join(" — "), !ok.length);
+};
+$("#addOwnBtn").onclick=()=>{
+  if(!DB.orders.length){ toast("This device has no orders yet",1); return; }
+  const rep=addToRoster("This device",DB.orders.map(o=>({...o,cadet:o.cadet||DB.settings.defaultCadet||""})));
+  persist(); renderDist(); toast(`${DB.orders.length} order${DB.orders.length===1?"":"s"} ${rep?"refreshed in":"added to"} the roster`);
+};
+function distCard(x){
+  const s=rStatus(x), info=[x.phone, x.address&&"📍 "+x.address, x.cadet&&"Cadet: "+x.cadet].filter(Boolean).map(esc).join(" · ");
+  return `<div class="dcard ${s}"><div class="dhead"><div><b>${esc(x.name)}</b>${s==="done"?'<span class="pill done">✓ Done</span>':s==="partial"?'<span class="pill partial">Partly</span>':""}<div class="its">${info}</div></div>
+    ${s==="done"?`<button class="btn sm noprint" data-undo="${x.id}">Undo</button>`:s==="empty"?"":`<button class="btn sm green noprint" data-all="${x.id}">✓ All handed out</button>`}</div>
+    <div class="ditems">${rKeys(x).map(k=>`<label class="ditem ${x.got[k]?"got":""}"><input type="checkbox" data-id="${x.id}" data-k="${k}" ${x.got[k]?"checked":""}> ${x.items[k]}× ${esc(PBYK[k].name)}</label>`).join("")||'<span class="muted">No items listed</span>'}</div>
+    ${x.notes?`<div class="its" style="margin-top:6px;color:var(--muted);font-size:13px">📝 ${esc(x.notes)}</div>`:""}</div>`;
+}
+function renderDist(){
+  const R=DB.roster, q=norm($("#dSearch").value), f=$("#dFilter").value, grp=$("#dGroup").value;
+  const srcs=new Set(R.map(x=>x.src));
+  $("#rosterInfo").textContent = R.length ? `${R.length} customers from ${srcs.size} source${srcs.size>1?"s":""}` : "No roster loaded yet";
+  let tot=0, got=0; const rem={};
+  R.forEach(x=>rKeys(x).forEach(k=>{ const n=+x.items[k]; tot+=n; if(x.got[k]) got+=n; else rem[k]=(rem[k]||0)+n; }));
+  const done=R.filter(x=>rStatus(x)==="done").length;
+  $("#distStats").innerHTML = R.length ? [["Customers done",`${done} / ${R.length}`],["Items handed out",`${got} / ${tot}`],["Still waiting",R.length-done],["Door-to-door",R.filter(x=>x.address).length]].map(([l,v])=>`<div class="stat"><div class="v">${v}</div><div class="l">${l}</div></div>`).join("") : "";
+  const rows=R.filter(x=>{ const s=rStatus(x);
+    if(f==="open"&&s==="done") return false; if(f==="done"&&s!=="done") return false; if(f==="addr"&&!x.address) return false;
+    if(!q) return true; return norm([x.name,x.phone,x.address,x.cadet,x.notes].join(" ")).includes(q) || (digits(q).length>=3&&digits(x.phone).includes(digits(q)));
+  }).sort((a,b)=>lastFirst(a.name).localeCompare(lastFirst(b.name)));
+  let h="";
+  if(!R.length) h=`<div class="empty">Load the tally sheets or backups from each family to build the pickup roster.</div>`;
+  else if(!rows.length) h=`<div class="empty">${f==="open"&&!q?"🎉 Everything has been handed out!":"No matching customers."}</div>`;
+  else if(grp==="cadet"){ const by={}; rows.forEach(x=>(by[x.cadet||"(no cadet)"]=by[x.cadet||"(no cadet)"]||[]).push(x));
+    Object.keys(by).sort().forEach(c=>{ h+=`<div class="dgroup">${esc(c)} · ${by[c].length}</div>`+by[c].map(distCard).join(""); }); }
+  else h=rows.map(distCard).join("");
+  $("#dList").innerHTML=h;
+  const rk=PRODUCTS.filter(p=>rem[p.k]);
+  $("#dRemain").innerHTML = rk.length ? "<thead><tr><th>Item</th><th class='num'>Still to hand out</th></tr></thead><tbody>"+rk.map(p=>`<tr><td>${esc(p.name)}</td><td class="num">${rem[p.k]}</td></tr>`).join("")+"</tbody>"
+    : `<tr><td class="empty">${R.length?"Nothing left to hand out.":"No roster loaded yet."}</td></tr>`;
+}
+$("#dSearch").oninput=renderDist; $("#dFilter").onchange=renderDist; $("#dGroup").onchange=renderDist;
+$("#dList").addEventListener("change",e=>{
+  const cb=e.target; if(!cb.dataset.k) return; const x=DB.roster.find(r=>r.id===cb.dataset.id); if(!x) return;
+  if(cb.checked) x.got[cb.dataset.k]=true; else delete x.got[cb.dataset.k];
+  persist(); if(rStatus(x)==="done") toast(`✓ ${x.name} — all items handed out`); renderDist();
+});
+$("#dList").addEventListener("click",e=>{
+  const all=e.target.dataset.all, undo=e.target.dataset.undo; if(!all&&!undo) return;
+  const x=DB.roster.find(r=>r.id===(all||undo)); if(!x) return;
+  if(all){ rKeys(x).forEach(k=>x.got[k]=true); toast(`✓ ${x.name} — all items handed out`); } else x.got={};
+  persist(); renderDist();
+});
+$("#dPrint").onclick=()=>{ const s=$("#tab-dist"); s.classList.add("print"); window.print(); s.classList.remove("print"); };
+$("#exDistTally").onclick=async()=>{
+  if(!DB.roster.length){ toast("Load a roster first",1); return; }
+  const bySrc={}; DB.roster.forEach(x=>(bySrc[x.src]=bySrc[x.src]||[]).push(x));
+  try{
+    let count=0;
+    for(const [src,list] of Object.entries(bySrc)){
+      const cadets=[...new Set(list.map(x=>x.cadet).filter(Boolean))], header=cadets.length===1?cadets[0]:src.replace(/\.[^.]+$/,"");
+      const orders=list.map(x=>({...x,pickedUp:rStatus(x)==="done"})), pages=Math.ceil(orders.length/ROWS_PER_SHEET);
+      for(let pg=0;pg<pages;pg++){
+        const blob=await buildTally(orders.slice(pg*ROWS_PER_SHEET,(pg+1)*ROWS_PER_SHEET), pg*ROWS_PER_SHEET+1, header);
+        download(blob,`${DB.settings.year} Tally Sheet - ${header} (delivered)${pages>1?` page ${pg+1} of ${pages}`:""}.xlsx`.replace(/[\\/:*?"<>|]/g,"-")); count++;
+        await new Promise(r=>setTimeout(r,400));
+      }
+    }
+    toast(`${count} tally sheet${count>1?"s":""} downloaded`);
+  }catch(err){ console.error(err); toast("Export failed: "+err.message,1); }
+};
+$("#exDistCsv").onclick=()=>{
+  if(!DB.roster.length){ toast("Load a roster first",1); return; }
+  const q=v=>`"${String(v??"").replace(/"/g,'""')}"`, st={done:"Done",partial:"Partly",open:"Waiting",empty:"No items"};
+  const rows=DB.roster.slice().sort((a,b)=>(a.cadet||"").localeCompare(b.cadet||"")||lastFirst(a.name).localeCompare(lastFirst(b.name)));
+  const lines=[["Status","Cadet","Customer Name","Phone / Email","Address","Ordered","Still to hand out","Notes","Source"].map(q).join(",")].concat(rows.map(x=>[st[rStatus(x)],x.cadet,x.name,x.phone,x.address,itemsText(x.items),itemsText(Object.fromEntries(rKeys(x).filter(k=>!x.got[k]).map(k=>[k,x.items[k]]))),x.notes,x.src].map(q).join(",")));
+  download(new Blob(["﻿"+lines.join("\r\n")],{type:"text/csv"}),`${DB.settings.year} Delivery Report.csv`);
+};
+$("#clearRoster").onclick=async()=>{
+  if(!DB.roster.length) return;
+  if(await ask("Clear the roster?","<p>This removes the loaded roster and all its check marks. Orders taken on this device are not touched.</p>",[{label:"Cancel",value:false},{label:"Clear roster",value:true,cls:"primary"}])){ DB.roster=[]; persist(); renderDist(); }
 };
 
 // ---------- phone / install ----------
@@ -891,7 +1051,6 @@ load();
 setupInstall();
 if(!storageOK) $("#storageWarn").classList.add("show");
 buildForm(); wireSearch($("#fName")); wireSearch($("#fPhone")); updateCounts(); updateTotal();
-$("#fCadet").value = DB.settings.defaultCadet||"";
 window.addEventListener("beforeunload",e=>{ if(formDirty()){ e.preventDefault(); e.returnValue=""; }});
 if(!isPhone) $("#fName").focus();
 </script>
